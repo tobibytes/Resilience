@@ -5,7 +5,7 @@ Small resilience wrapper with metrics hooks.
 ## Install
 
 ```bash
-npm install resilience
+npm install @oldwhisper/resilience
 ```
 
 ## Quick start
