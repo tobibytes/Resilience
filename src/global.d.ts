@@ -1,12 +1,13 @@
-declare namespace App {
+declare namespace Resilience {
 
-    interface Function<Fn extends (...args: any[]) => any = (...args: any[]) => any> {
+    export type CircuitState = "CLOSED" | "OPEN" | "HALF_OPEN";
+    export interface Function<Fn extends (...args: any[]) => any = (...args: any[]) => any> {
         fn: Fn
         args: Parameters<Fn>
         name: string
     }
 
-    interface FunctionResult<R = any> {
+    export interface FunctionResult<R = any> {
         time: number,
         returnValue: R,
         inputsCount: number

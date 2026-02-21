@@ -1,8 +1,8 @@
 {
-  "name": "resilience",
-  "version": "1.0.0",
+  "name": "@oldwhisper/resilience",
+  "version": "1.0.3",
   "description": "Resilience wrappers with retries, timeouts, backoff, circuit breaker, and metrics hooks.",
-  "main": "index.ts",
+  "main": "./dist/index.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
