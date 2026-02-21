@@ -1,0 +1,30 @@
+{
+  "name": "resilience",
+  "version": "1.0.0",
+  "description": "Resilience wrappers with retries, timeouts, backoff, circuit breaker, and metrics hooks.",
+  "main": "index.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepublishOnly": "npm run build",
+    "test": "node -e \"console.log('add tests')\"",
+    "start": "node src/index.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}
