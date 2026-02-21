@@ -1,8 +1,15 @@
 /// <reference path="./global.d.ts" />
 
 
+/**
+ * Active abort signal for the current resilient execution context.
+ * Set internally by `withResilience` when `useAbortSignal` is enabled.
+ */
 let activeSignal: AbortSignal | undefined;
 
+/**
+ * Runs a function while temporarily setting the active signal.
+ */
 async function runWithActiveSignal<T>(signal: AbortSignal | undefined, fn: () => Promise<T>) {
     const prev = activeSignal;
     activeSignal = signal;
@@ -15,6 +22,9 @@ async function runWithActiveSignal<T>(signal: AbortSignal | undefined, fn: () =>
 
 
 
+/**
+ * Simple circuit breaker implementation.
+ */
 class CircuitBreaker {
     private state: Resilience.CircuitState = "CLOSED";
     private failures = 0;
@@ -24,7 +34,7 @@ class CircuitBreaker {
         private cfg: Resilience.CircuitBreakerConfig,
         private hooks?: Resilience.ResilienceHooks,
         private name = "fn"
-    ) {}
+    ) { }
 
     canAttempt(): boolean {
         if (this.state === "CLOSED") return true;
@@ -56,6 +66,9 @@ class CircuitBreaker {
     }
 }
 
+/**
+ * Computes backoff delay for a given attempt.
+ */
 function computeBackoffMs(strategy: Resilience.BackoffStrategy | undefined, attempt: number): number {
     if (!strategy) return 0;
     if (strategy.type === "fixed") return strategy.delayMs;
@@ -67,10 +80,16 @@ function computeBackoffMs(strategy: Resilience.BackoffStrategy | undefined, atte
     return Math.floor(Math.random() * capped);
 }
 
+/**
+ * Async delay utility.
+ */
 function delay(ms: number) {
     return new Promise<void>((resolve) => setTimeout(resolve, ms));
 }
 
+/**
+ * Wraps a promise with a timeout and optional abort.
+ */
 async function withTimeout<T>(
     p: Promise<T>,
     timeoutMs?: number,
@@ -88,6 +107,9 @@ async function withTimeout<T>(
     ]);
 }
 
+/**
+ * Wraps a function with retries, timeout, backoff, and circuit breaker behavior.
+ */
 export function withResilience<Fn extends (...args: any[]) => any>(
     fn: Fn,
     config: Resilience.ResilienceConfig = {}
@@ -145,6 +167,9 @@ export function withResilience<Fn extends (...args: any[]) => any>(
     }) as (...args: Parameters<Fn>) => Promise<Awaited<ReturnType<Fn>>>;
 }
 
+/**
+ * Cancellable sleep. Uses the active signal by default.
+ */
 export const sleep = (ms: number, signal: AbortSignal | undefined = activeSignal) =>
     new Promise<void>((resolve, reject) => {
         const id = setTimeout(resolve, ms);
@@ -166,6 +191,9 @@ export const sleep = (ms: number, signal: AbortSignal | undefined = activeSignal
         );
     });
 
+/**
+ * Fetch wrapper that automatically uses the active abort signal when present.
+ */
 export const resilientFetch = (input: RequestInfo | URL, init?: RequestInit) => {
     const signal = init?.signal ?? activeSignal;
     if (!signal) return fetch(input, init);
@@ -173,16 +201,25 @@ export const resilientFetch = (input: RequestInfo | URL, init?: RequestInit) => 
 };
 
 
+/**
+ * Metrics adapter with helpers for resilience hooks.
+ */
 export class WrapperInit {
     functionCalls: number = 0
     f_store: Map<string, number> = new Map();
 
+    /**
+     * Records a function attempt by name.
+     */
     record(name: string) {
         const prev = this.f_store.get(name) ?? 0;
         this.f_store.set(name, prev + 1);
         this.functionCalls++;
     }
 
+    /**
+     * Returns resilience hooks that update metrics.
+     */
     hooks(): Resilience.ResilienceHooks {
         return {
             onAttempt: ({ name }) => {
@@ -191,6 +228,9 @@ export class WrapperInit {
         };
     }
 
+    /**
+     * Wraps a function with resilience behavior and metrics hooks.
+     */
     wrap<Fn extends (...args: any[]) => any>(
         fn: Fn,
         config: Omit<Resilience.ResilienceConfig, "hooks" | "name"> & { name?: string } = {}
@@ -202,6 +242,9 @@ export class WrapperInit {
         });
     }
 
+    /**
+     * Runs a function and records metrics without resilience features.
+     */
     run<Fn extends (...args: any[]) => any>(fn: Fn, ...args: Parameters<Fn>): ReturnType<Fn> {
         const wf = new WrappedFunction(fn, ...args)
         if (!this.f_store.has(wf.name)) {
@@ -215,6 +258,9 @@ export class WrapperInit {
     }
 }
 
+/**
+ * Internal wrapper that records execution metadata.
+ */
 class WrappedFunction<Fn extends (...args: any[]) => any> implements Resilience.Function {
     fn: Fn;
     args: Parameters<Fn>;
