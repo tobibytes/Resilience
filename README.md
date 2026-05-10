@@ -1,6 +1,8 @@
 # Resilience
 
-Small resilience wrapper with metrics hooks.
+A small TypeScript toolkit that wraps any function (sync or async) with the patterns you reach for when something flaky needs to be made boring: **retries**, **timeouts**, **backoff** (fixed or exponential-with-jitter), a **circuit breaker**, and a hook surface for **metrics**.
+
+Published on npm as [`@oldwhisper/resilience`](https://www.npmjs.com/package/@oldwhisper/resilience).
 
 ## Install
 
@@ -11,7 +13,7 @@ npm install @oldwhisper/resilience
 ## Quick start
 
 ```ts
-import { WrapperInit } from "resilience";
+import { WrapperInit } from "@oldwhisper/resilience";
 
 function greet(x: number, y: number) {
   return x + y;
@@ -32,7 +34,7 @@ console.log(metrics.functionCalls, metrics.f_store);
 Wrap any function with retry, timeout, backoff, and circuit breaker support.
 
 ```ts
-import { withResilience } from "resilience";
+import { withResilience } from "@oldwhisper/resilience";
 
 const resilient = withResilience(fetchData, {
   name: "fetchData",
